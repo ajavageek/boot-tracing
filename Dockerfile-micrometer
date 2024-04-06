@@ -1,0 +1,16 @@
+FROM eclipse-temurin:21-jdk AS build
+
+ADD micrometer-tracing/mvnw .
+ADD micrometer-tracing/.mvn .mvn
+
+ADD pom.xml .
+ADD micrometer-tracing/src micrometer-tracing/src
+ADD micrometer-tracing/pom.xml micrometer-tracing/pom.xml
+
+RUN --mount=type=cache,target=/root/.m2 ./mvnw -f micrometer-tracing/pom.xml clean package -DskipTests
+
+FROM eclipse-temurin:21-jre
+
+COPY --from=build /micrometer-tracing/target/micrometer-tracing-1.0-SNAPSHOT.jar app.jar
+
+CMD ["java", "-jar", "app.jar"]

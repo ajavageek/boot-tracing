@@ -1,0 +1,35 @@
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.55
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+  micrometer-tracing:
+    build:
+      dockerfile: Dockerfile-micrometer
+    environment:
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+      SPRING_APPLICATION_NAME: micrometer-tracing
+    ports:
+      - "8080:8080"
+  agent-1x:
+    build:
+      dockerfile: Dockerfile-agent1
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_RESOURCE_ATTRIBUTES: service.name=agent-1x
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+    ports:
+      - "8081:8080"
+  agent-2x:
+    build:
+      dockerfile: Dockerfile-agent2
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      OTEL_RESOURCE_ATTRIBUTES: service.name=agent-2x
+      OTEL_METRICS_EXPORTER: none
+      OTEL_LOGS_EXPORTER: none
+    ports:
+      - "8082:8080"
