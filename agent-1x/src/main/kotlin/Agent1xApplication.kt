@@ -1,5 +1,6 @@
 package ch.frankel.blog.agentone
 
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -23,6 +24,7 @@ class Agent1xController {
         if (done == null) intermediate()
     }
 
+    @WithSpan
     fun intermediate() {
         logger.info("intermediate")
         RestClient.builder()

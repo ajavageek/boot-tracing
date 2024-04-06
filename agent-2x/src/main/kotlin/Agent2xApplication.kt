@@ -1,5 +1,6 @@
 package ch.frankel.blog.agenttwo
 
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -18,11 +19,13 @@ class Agent2xController {
     private val logger = LoggerFactory.getLogger(Agent2xController::class.java)
 
     @GetMapping("/{message}")
+    @WithSpan
     fun entry(@PathVariable message: String, @RequestHeader("X-done") done: String?) {
         logger.info("entry: $message")
         if (done == null) intermediate()
     }
 
+    @WithSpan
     fun intermediate() {
         logger.info("intermediate")
         RestClient.builder()

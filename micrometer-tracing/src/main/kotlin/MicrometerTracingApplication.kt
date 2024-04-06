@@ -1,5 +1,7 @@
 package ch.frankel.blog.micrometer
 
+import io.micrometer.observation.Observation
+import io.micrometer.observation.ObservationRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -19,22 +21,28 @@ class MicrometerTracingApplication {
 }
 
 @RestController
-class MicrometerController(private val restClient: RestClient) {
+class MicrometerController(private val restClient: RestClient, private val registry: ObservationRegistry) {
 
     private val logger = LoggerFactory.getLogger(MicrometerController::class.java)
 
     @GetMapping("/{message}")
     fun entry(@PathVariable message: String, @RequestHeader("X-done") done: String?) {
         logger.info("entry: $message")
-        if (done == null) intermediate()
+        val observation = Observation.start("entry", registry)
+        if (done == null) intermediate(observation)
+        observation.stop()
     }
 
-    fun intermediate() {
+    fun intermediate(parent: Observation) {
         logger.info("intermediate")
+        val observation = Observation.createNotStarted("intermediate", registry)
+            .parentObservation(parent)
+            .start()
         restClient.get()
-                  .header("X-done", "true")
-                  .retrieve()
-                  .toBodilessEntity()
+            .header("X-done", "true")
+            .retrieve()
+            .toBodilessEntity()
+        observation.stop()
     }
 }
 
